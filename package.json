@@ -1,6 +1,6 @@
 {
   "name": "claude-sustain",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Token-efficiency rules, skill routing, enforcement hooks, and cross-platform AGENTS.md generation for Claude Code.",
   "private": true,
   "license": "MIT",

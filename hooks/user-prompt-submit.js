@@ -32,6 +32,7 @@ const reminder = [
 ].join(" ");
 
 writeJson({
+  systemMessage: `[claude-sustain] Iron-1 active — keyword "${hit}" detected; shortcuts disabled for this turn`,
   hookSpecificOutput: {
     hookEventName: "UserPromptSubmit",
     additionalContext: reminder

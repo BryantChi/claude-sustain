@@ -1,6 +1,6 @@
 {
   "$schema": "./spec.schema.json",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "metadata": {
     "name": "claude-sustain",
     "title": "Token Efficiency & Sustainable AI Use",

@@ -1,8 +1,9 @@
 // PreToolUse hook (matcher: Task) — Iron-2 enforcement (warn-only in v0.1).
 // Checks that subagent prompts include a word cap and an escape clause.
-// Never blocks in v0.1 — emits stderr advisory and exits 0 so we can collect data first.
+// Never blocks in v0.1 — emits a user-visible systemMessage advisory and exits 0
+// so we can collect data before deciding whether to enforce.
 
-import { readStdinJson, loadSpec } from "./lib/io.js";
+import { readStdinJson, writeJson, loadSpec } from "./lib/io.js";
 
 const WORD_CAP_PATTERNS = [
   /[≤<]\s*\d+\s*字/,           // 中文：≤ 200 字
@@ -49,5 +50,5 @@ const advice = [
   iron2 ? `Reference caps: pure-check ≤200 / structural ≤800 / deep-analysis ≤2000.` : ""
 ].filter(Boolean).join("\n");
 
-process.stderr.write(advice + "\n");
+writeJson({ systemMessage: advice });
 process.exit(0);

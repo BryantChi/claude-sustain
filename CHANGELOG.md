@@ -5,6 +5,15 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-04-28
+
+### Changed
+- Hooks now emit a user-visible `systemMessage` so the SessionStart primer,
+  Iron-1 keyword detection, Iron-2 advisory, and Stop phase-end checklist
+  all appear directly in the chat transcript instead of only landing in
+  Claude's hidden context. Stop hook moved off `stderr` (which was
+  invisible) onto `systemMessage` for the same reason.
+
 ## [0.1.0] — 2026-04-28
 
 Initial MVP release.

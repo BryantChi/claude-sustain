@@ -1,6 +1,7 @@
 // Integration tests for hook scripts.
 // Each test spawns the hook with a JSON payload on stdin and asserts on
-// stdout JSON / stderr advisory / exit code.
+// stdout JSON / exit code. As of v0.1.1 hooks emit a user-visible
+// `systemMessage` field alongside the existing Claude-context fields.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -37,14 +38,15 @@ test("PreToolUse: Task with cap + escape clause exits silently", () => {
   assert.equal(r.stderr.trim(), "");
 });
 
-test("PreToolUse: Task missing cap warns to stderr", () => {
+test("PreToolUse: Task missing cap emits systemMessage advisory", () => {
   const r = runHook("hooks/pre-tool-use.js", {
     tool_name: "Task",
     tool_input: { prompt: "Survey the project and report back." }
   });
   assert.equal(r.status, 0, "warn-only must exit 0");
-  assert.match(r.stderr, /Iron-2/, "stderr should mention Iron-2");
-  assert.match(r.stderr, /word cap|字/, "stderr should call out missing cap");
+  const out = JSON.parse(r.stdout);
+  assert.match(out.systemMessage, /Iron-2/);
+  assert.match(out.systemMessage, /word cap|字/);
 });
 
 test("PreToolUse: non-Task tool is ignored", () => {
@@ -53,10 +55,10 @@ test("PreToolUse: non-Task tool is ignored", () => {
     tool_input: { file_path: "/tmp/x" }
   });
   assert.equal(r.status, 0);
-  assert.equal(r.stderr.trim(), "");
+  assert.equal(r.stdout.trim(), "");
 });
 
-test("UserPromptSubmit: keyword '逐個' triggers Iron-1 reminder", () => {
+test("UserPromptSubmit: keyword '逐個' triggers Iron-1 reminder + visible systemMessage", () => {
   const r = runHook("hooks/user-prompt-submit.js", {
     prompt: "請逐個檢查這些檔案"
   });
@@ -64,6 +66,8 @@ test("UserPromptSubmit: keyword '逐個' triggers Iron-1 reminder", () => {
   const out = JSON.parse(r.stdout);
   assert.equal(out.hookSpecificOutput.hookEventName, "UserPromptSubmit");
   assert.match(out.hookSpecificOutput.additionalContext, /Iron-1/);
+  assert.match(out.systemMessage, /Iron-1/);
+  assert.match(out.systemMessage, /逐個/);
 });
 
 test("UserPromptSubmit: keyword 'thoroughly' triggers Iron-1 reminder", () => {
@@ -73,6 +77,7 @@ test("UserPromptSubmit: keyword 'thoroughly' triggers Iron-1 reminder", () => {
   assert.equal(r.status, 0);
   const out = JSON.parse(r.stdout);
   assert.match(out.hookSpecificOutput.additionalContext, /Iron-1/);
+  assert.match(out.systemMessage, /thoroughly/);
 });
 
 test("UserPromptSubmit: benign prompt does not inject context", () => {
@@ -83,18 +88,21 @@ test("UserPromptSubmit: benign prompt does not inject context", () => {
   assert.equal(r.stdout.trim(), "");
 });
 
-test("SessionStart: emits primer with version and rule count", () => {
+test("SessionStart: emits primer with version, Claude-context and user systemMessage", () => {
   const r = runHook("hooks/session-start.js", {});
   assert.equal(r.status, 0);
   const out = JSON.parse(r.stdout);
   assert.equal(out.hookSpecificOutput.hookEventName, "SessionStart");
   assert.match(out.hookSpecificOutput.additionalContext, /claude-sustain v/);
   assert.match(out.hookSpecificOutput.additionalContext, /IRON-1/i);
+  assert.match(out.systemMessage, /claude-sustain v/);
+  assert.match(out.systemMessage, /active/);
 });
 
-test("Stop: prints checklist and a token line", () => {
+test("Stop: emits checklist + token line in user-visible systemMessage", () => {
   const r = runHook("hooks/stop.js", { transcript_path: "/nonexistent" });
   assert.equal(r.status, 0);
-  assert.match(r.stderr, /Phase-end checklist/);
-  assert.match(r.stderr, /tokens:/);
+  const out = JSON.parse(r.stdout);
+  assert.match(out.systemMessage, /phase-end checklist/);
+  assert.match(out.systemMessage, /tokens:/);
 });

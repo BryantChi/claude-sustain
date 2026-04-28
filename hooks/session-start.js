@@ -16,6 +16,7 @@ const primer = [
 ].join("\n");
 
 writeJson({
+  systemMessage: `[claude-sustain v${spec.version}] active — ${spec.ironRules.length} Iron Rules + ${spec.phaseChecklist.length}-question phase check + ${spec.skillRouting.length} skill routes`,
   hookSpecificOutput: {
     hookEventName: "SessionStart",
     additionalContext: primer
