@@ -1,0 +1,33 @@
+{
+  "name": "claude-sustain",
+  "owner": {
+    "name": "BryantChi"
+  },
+  "metadata": {
+    "description": "Sustainable long-term Claude Code use — token-efficiency rules, skill routing, enforcement hooks, and cross-platform AGENTS.md generation.",
+    "homepage": "https://github.com/BryantChi/claude-sustain"
+  },
+  "plugins": [
+    {
+      "name": "claude-sustain",
+      "version": "0.1.0",
+      "source": "./",
+      "description": "Token-efficiency rules, skill routing, enforcement hooks, and cross-platform AGENTS.md generation for Claude Code.",
+      "author": {
+        "name": "BryantChi"
+      },
+      "homepage": "https://github.com/BryantChi/claude-sustain",
+      "license": "MIT",
+      "keywords": [
+        "token-efficiency",
+        "rules",
+        "hooks",
+        "skill-routing",
+        "memory",
+        "agents-md",
+        "cross-platform",
+        "sustainable"
+      ]
+    }
+  ]
+}

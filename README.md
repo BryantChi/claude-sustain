@@ -25,10 +25,17 @@ Coming in v1.0: memory backend abstraction (claude-mem **or** mempalace, both op
 
 ```text
 /plugin marketplace add BryantChi/claude-sustain
-/plugin install claude-sustain
+/plugin install claude-sustain@claude-sustain
 ```
 
 After install, restart your Claude Code session. You should see a one-line primer in the SessionStart context and a phase-end checklist after Stop.
+
+You can also install from a local clone (useful while developing):
+
+```text
+/plugin marketplace add /path/to/claude-sustain
+/plugin install claude-sustain@claude-sustain
+```
 
 ## Use
 

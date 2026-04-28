@@ -13,7 +13,7 @@ const SKIP_DIRS = new Set([".git", "node_modules", "dist", "coverage", "tests/fi
 const SKIP_FILES = new Set(["lint-personal.js"]);
 
 const FORBIDDEN = [
-  { pattern: /bryantchi/gi, label: "username 'bryantchi'", allowIn: ["package.json", "LICENSE", ".claude-plugin/plugin.json", "README.md", "CHANGELOG.md"] },
+  { pattern: /bryantchi/gi, label: "username 'bryantchi'", allowIn: ["package.json", "LICENSE", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "README.md", "CHANGELOG.md"] },
   { pattern: /\/Users\/[A-Za-z0-9_-]+/g, label: "absolute /Users/<name> path", allowIn: [] },
   { pattern: /\/home\/[A-Za-z0-9_-]+/g, label: "absolute /home/<name> path", allowIn: [] }
 ];
