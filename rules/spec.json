@@ -130,7 +130,7 @@
     { "when": "2+ independent tasks runnable in parallel", "use": "superpowers:dispatching-parallel-agents", "source": "superpowers" },
     { "when": "Before claiming done / fixed / passing", "use": "superpowers:verification-before-completion", "source": "superpowers" },
     { "when": "Major phase complete, want review", "use": "superpowers:requesting-code-review", "source": "superpowers" },
-    { "when": "Cross-session lookup (\"how did we solve X before?\")", "use": "claude-mem:mem-search OR mempalace MCP search", "source": "memory-backend" },
+    { "when": "Cross-session lookup (\"how did we solve X before?\")", "use": "claude-sustain:memory-search-bridge", "source": "claude-sustain" },
     { "when": "Structural code navigation (avoid reading whole files)", "use": "claude-mem:smart-explore", "source": "claude-mem" },
     { "when": "Stuck, want second opinion", "use": "codex:rescue OR gemini:rescue", "source": "external-rescue" },
     { "when": "Frontend UI / component design", "use": "frontend-design", "source": "anthropic" },

@@ -42,7 +42,7 @@ These override the detailed rules below when in conflict.
 | 2+ independent tasks runnable in parallel | `superpowers:dispatching-parallel-agents` |
 | Before claiming done / fixed / passing | `superpowers:verification-before-completion` |
 | Major phase complete, want review | `superpowers:requesting-code-review` |
-| Cross-session lookup ("how did we solve X before?") | `claude-mem:mem-search OR mempalace MCP search` |
+| Cross-session lookup ("how did we solve X before?") | `claude-sustain:memory-search-bridge` |
 | Structural code navigation (avoid reading whole files) | `claude-mem:smart-explore` |
 | Stuck, want second opinion | `codex:rescue OR gemini:rescue` |
 | Frontend UI / component design | `frontend-design` |

@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] — 2026-04-29
 
 ### Added
+- M3 user-facing skills:
+  - `memory-write-router` — decide whether and where to persist a learning;
+    routes through the active backend (mempalace MCP / claude-mem MCP / fs).
+  - `memory-search-bridge` — "how did we solve X before?" lookups across
+    mempalace MCP, claude-mem MCP, and the fs grep fallback.
+  - `token-budget-coach` — reads token stats and recommends `/compact`,
+    subagent delegation, model switch, or session reset.
+- M5 telemetry:
+  - `lib/telemetry.js` — Stop hook now appends per-phase token snapshot to
+    `~/.claude/sustain/telemetry/<YYYY-MM-DD>.jsonl`; reader exposes
+    `movingAverage({ sinceDays })` for trend analysis.
+  - `/sustain:status` upgraded to read telemetry and surface 7-day averages
+    against the current session.
 - M2/M7 memory subsystem foundation:
   - `lib/memory/detect.js` — filesystem-based probe for mempalace and
     claude-mem in `~/.claude/plugins/cache/`, with env-var overrides
