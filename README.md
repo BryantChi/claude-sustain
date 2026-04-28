@@ -24,7 +24,7 @@ Coming in v1.0: memory backend abstraction (claude-mem **or** mempalace, both op
 `claude-sustain` is distributed as a Claude Code plugin.
 
 ```text
-/plugin marketplace add bryantchi/claude-sustain
+/plugin marketplace add BryantChi/claude-sustain
 /plugin install claude-sustain
 ```
 
