@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.1.1.
+> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.2.0.
 > This file follows the AGENTS.md cross-platform standard (agents.md).
 
 ## Language

@@ -95,8 +95,10 @@ test("SessionStart: emits primer with version, Claude-context and user systemMes
   assert.equal(out.hookSpecificOutput.hookEventName, "SessionStart");
   assert.match(out.hookSpecificOutput.additionalContext, /claude-sustain v/);
   assert.match(out.hookSpecificOutput.additionalContext, /IRON-1/i);
+  assert.match(out.hookSpecificOutput.additionalContext, /Memory backend/);
   assert.match(out.systemMessage, /claude-sustain v/);
   assert.match(out.systemMessage, /active/);
+  assert.match(out.systemMessage, /memory: (fs|mempalace|claude-mem)/);
 });
 
 test("Stop: emits checklist + token line in user-visible systemMessage", () => {
