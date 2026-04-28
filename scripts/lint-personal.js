@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 
-const SKIP_DIRS = new Set([".git", "node_modules", "dist", "coverage", "tests/fixtures"]);
+const SKIP_DIRS = new Set([".git", "node_modules", "dist", "coverage", "tests/fixtures", "validation"]);
 const SKIP_FILES = new Set(["lint-personal.js"]);
 
 const FORBIDDEN = [

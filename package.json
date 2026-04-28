@@ -11,7 +11,9 @@
     "test:integration": "node --test 'tests/integration/*.test.js'",
     "lint:personal": "node scripts/lint-personal.js",
     "export": "node lib/cli/export.js",
-    "regen-claude-md": "node lib/cli/export.js --target=plugin-self"
+    "regen-claude-md": "node lib/cli/export.js --target=plugin-self",
+    "measure": "node scripts/measure-sessions.js",
+    "compare": "node scripts/compare-snapshots.js"
   },
   "engines": {
     "node": ">=20"
