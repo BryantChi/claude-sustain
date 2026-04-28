@@ -1,0 +1,171 @@
+{
+  "$schema": "./spec.schema.json",
+  "version": "0.1.0",
+  "metadata": {
+    "name": "claude-sustain",
+    "title": "Token Efficiency & Sustainable AI Use",
+    "description": "Rules for minimizing token waste and maintaining long-term effectiveness across AI coding sessions.",
+    "language": {
+      "default": "en",
+      "userPreferenceHint": "Detect the user's language from their message and respond in the same language. Code comments, identifiers, and git commits remain in English."
+    }
+  },
+  "ironRules": [
+    {
+      "id": "iron-1",
+      "title": "User intent first",
+      "summary": "Never trade user intent for token savings.",
+      "body": "When the user message contains keywords that signal exhaustive work — \"逐個 / 仔細 / 全部 / 不要省略 / 都要確認 / thoroughly / each / all / every\" — or the task is security-related, take the original path. Do not apply any shortcut: no templating, no batching, no parallelization, no sampling.",
+      "triggers": {
+        "keywords": ["逐個", "仔細", "全部", "不要省略", "都要確認", "thoroughly", "each", "all", "every"],
+        "domains": ["security", "compliance", "irreversible-operation"]
+      }
+    },
+    {
+      "id": "iron-2",
+      "title": "Subagent prompts must include word cap and escape clause",
+      "summary": "Every subagent invocation needs a length budget and a safety valve.",
+      "body": "When dispatching a subagent, include both: (a) a word cap appropriate to the task — pure check ≤ 200 / structural inventory ≤ 800 / deep analysis or code review ≤ 2000 — and (b) an escape clause: \"But if you find anomalies or significant issues, report them in full regardless of the cap.\"",
+      "wordCaps": {
+        "pureCheck": 200,
+        "structuralInventory": 800,
+        "deepAnalysis": 2000,
+        "codeReview": 2000
+      },
+      "escapeClause": "But if you find anomalies or significant issues, report them in full regardless of the cap."
+    },
+    {
+      "id": "iron-3",
+      "title": "Repeated regex edits use perl + git diff",
+      "summary": "From the second identical edit onward, switch to a batch tool with diff verification.",
+      "body": "When the same string replacement is needed twice or more, switch from per-file edits to `perl -i -pe 's|old|new|g' file1 file2 ...` (cross-platform consistent; avoid `sed` whose flags differ between macOS and GNU). Immediately run `git diff` for human review."
+    },
+    {
+      "id": "habit-1",
+      "title": "Template before bulk",
+      "summary": "When planning N similar tasks, look for the largest common factor first.",
+      "body": "Before executing N similar tasks, ask: \"What is the largest common factor? Can this be templated?\" If yes, write a template, validate it on one sample, then bulk-produce the rest (parallel sub-agents are fine). If no, do them one by one as originally planned. This is a habit, not a hard rule — when in doubt, fall back to per-task work."
+    }
+  ],
+  "phaseChecklist": [
+    {
+      "id": "p1",
+      "question": "Does the user's intent contain \"逐個 / 仔細 / 全部 / thoroughly / each / all\"? If yes, Iron-1 is active — skip all shortcuts for the rest of this phase."
+    },
+    {
+      "id": "p2",
+      "question": "About to call (or just called) a subagent? Apply Iron-2 — write the word cap and escape clause into the prompt."
+    },
+    {
+      "id": "p3",
+      "question": "About to repeat the same edit? From the second occurrence onward, switch to perl + git diff (Iron-3)."
+    },
+    {
+      "id": "p4",
+      "question": "Planning N similar tasks? Look for the common factor; if templatable, validate on one sample first."
+    },
+    {
+      "id": "p5",
+      "question": "Phase boundary or context growing large? Consider /compact to clear early raw output."
+    },
+    {
+      "id": "p6",
+      "question": "Anything from this phase worth long-term memory (rule, decision, external resource, project-state change)? Persist it as feedback / project / reference."
+    }
+  ],
+  "details": {
+    "R1": {
+      "title": "File Reading",
+      "rules": [
+        { "id": "R1.1", "text": "NEVER read a full file blindly. Use `offset` + `limit` to target the needed section." },
+        { "id": "R1.2", "text": "Before reading, check if the content is already in context." },
+        { "id": "R1.3", "text": "Files > 200 lines: read only the relevant function/block, not the whole file." },
+        { "id": "R1.4", "text": "Use AST-level structural navigation tools (e.g., claude-mem:smart-explore) to avoid reading entire files when only structure is needed." },
+        { "id": "R1.5", "text": "For cross-session memory queries (\"how did we solve X before?\"), use a memory backend (claude-mem, mempalace, or the file-based fallback) instead of re-searching the codebase." }
+      ]
+    },
+    "R2": {
+      "title": "Searching",
+      "rules": [
+        { "id": "R2.1", "text": "First pass: Grep with `output_mode: \"files_with_matches\"` to locate files." },
+        { "id": "R2.2", "text": "Second pass: Read only the matched files/sections." },
+        { "id": "R2.3", "text": "Set `head_limit` to actual need (10–20 for targeted, not the default 250)." },
+        { "id": "R2.4", "text": "Always use `glob` or `type` filters to narrow scope." },
+        { "id": "R2.5", "text": "Use specific patterns. Avoid broad regex that floods results." }
+      ]
+    },
+    "R3": {
+      "title": "Subagents",
+      "rules": [
+        { "id": "R3.1", "text": "Delegate exploration / research to subagents to protect main context." },
+        { "id": "R3.2", "text": "Use the Explore agent for codebase navigation." },
+        { "id": "R3.3", "text": "Use a smaller model (e.g. haiku) for simple lookups that do not need deep reasoning." },
+        { "id": "R3.4", "text": "Never duplicate work a subagent is already doing." },
+        { "id": "R3.5", "text": "Trust but verify — subagent reports can hallucinate (guessing from filenames). Read the source file once before relying on a critical conclusion." }
+      ]
+    },
+    "R4": {
+      "title": "Responses",
+      "rules": [
+        { "id": "R4.1", "text": "Be concise. Don't echo file contents back unless asked." },
+        { "id": "R4.2", "text": "No preambles (\"Let me...\", \"Sure...\", \"I'll now...\")." },
+        { "id": "R4.3", "text": "No lengthy explanations unless requested. Short, actionable answers." }
+      ]
+    },
+    "R5": {
+      "title": "General",
+      "rules": [
+        { "id": "R5.1", "text": "Don't re-search for things already in context." },
+        { "id": "R5.2", "text": "Batch independent tool calls in parallel." },
+        { "id": "R5.3", "text": "Prefer Edit over Write for existing files (diff only)." },
+        { "id": "R5.4", "text": "Prefer Glob/Grep over a shell command for file search and content search." }
+      ]
+    }
+  },
+  "skillRouting": [
+    { "when": "Debugging / bug / failing test / unexpected behavior", "use": "superpowers:systematic-debugging", "source": "superpowers" },
+    { "when": "New feature, new component, behavior change (any creative work)", "use": "superpowers:brainstorming → superpowers:writing-plans", "source": "superpowers" },
+    { "when": "Have a spec, need a multi-step plan", "use": "superpowers:writing-plans", "source": "superpowers" },
+    { "when": "Writing tests / TDD", "use": "superpowers:test-driven-development", "source": "superpowers" },
+    { "when": "2+ independent tasks runnable in parallel", "use": "superpowers:dispatching-parallel-agents", "source": "superpowers" },
+    { "when": "Before claiming done / fixed / passing", "use": "superpowers:verification-before-completion", "source": "superpowers" },
+    { "when": "Major phase complete, want review", "use": "superpowers:requesting-code-review", "source": "superpowers" },
+    { "when": "Cross-session lookup (\"how did we solve X before?\")", "use": "claude-mem:mem-search OR mempalace MCP search", "source": "memory-backend" },
+    { "when": "Structural code navigation (avoid reading whole files)", "use": "claude-mem:smart-explore", "source": "claude-mem" },
+    { "when": "Stuck, want second opinion", "use": "codex:rescue OR gemini:rescue", "source": "external-rescue" },
+    { "when": "Frontend UI / component design", "use": "frontend-design", "source": "anthropic" },
+    { "when": "Anthropic SDK / Claude API", "use": "claude-api", "source": "anthropic" },
+    { "when": "Configure hooks / permissions", "use": "update-config", "source": "anthropic" },
+    { "when": "Token budget interpretation, compact decisions", "use": "claude-sustain:token-budget-coach", "source": "claude-sustain" },
+    { "when": "End-of-phase 6-question check", "use": "claude-sustain:phase-self-check", "source": "claude-sustain" },
+    { "when": "Decide whether and where to persist a learning", "use": "claude-sustain:memory-write-router", "source": "claude-sustain" }
+  ],
+  "memoryBackends": {
+    "preferred": "auto",
+    "candidates": [
+      {
+        "id": "mempalace",
+        "name": "MemPalace",
+        "license": "MIT",
+        "url": "https://github.com/mempalace/mempalace",
+        "preference": "primary-when-installed",
+        "rationale": "MIT-licensed, verbatim storage, structured wings/rooms/drawers, 96.6% R@5 on LongMemEval."
+      },
+      {
+        "id": "claude-mem",
+        "name": "claude-mem",
+        "license": "AGPL-3.0",
+        "url": "https://github.com/thedotmack/claude-mem",
+        "preference": "secondary-when-installed",
+        "rationale": "Mature compression-based memory; we reference it through MCP tools only — no static linking — to avoid AGPL infection."
+      },
+      {
+        "id": "fs",
+        "name": "Structured filesystem fallback",
+        "license": "n/a",
+        "preference": "fallback-when-no-backend-installed",
+        "rationale": "Mirrors mempalace's wings/rooms/drawers so that future migration is straightforward."
+      }
+    ]
+  }
+}

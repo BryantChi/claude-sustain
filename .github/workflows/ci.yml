@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Personal-content lint
+        run: npm run lint:personal
+      - name: Unit + integration tests
+        run: npm test
+      - name: Verify generators are idempotent against committed CLAUDE.md
+        run: |
+          npm run regen-claude-md
+          if ! git diff --quiet CLAUDE.md AGENTS.md GEMINI.md; then
+            echo "Regenerated CLAUDE.md / AGENTS.md / GEMINI.md differ from committed versions."
+            git diff CLAUDE.md AGENTS.md GEMINI.md
+            exit 1
+          fi
