@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> Generated from `claude-sustain/rules/spec.json` v0.4.0.
+> Generated from `claude-sustain/rules/spec.json` v0.5.0.
 > Edit the spec, not this file.
 
 ## Language

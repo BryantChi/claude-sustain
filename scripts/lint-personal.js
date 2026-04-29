@@ -12,8 +12,12 @@ const ROOT = resolve(__dirname, "..");
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "coverage", "tests/fixtures", "validation"]);
 const SKIP_FILES = new Set(["lint-personal.js"]);
 
+// Note: pattern is case-sensitive on purpose. Lowercase "bryantchi" leaks
+// from local environments (shell prompts, file paths, transcripts). The
+// canonical GitHub identity "BryantChi" is the project's public name and
+// legitimately appears in repo URLs throughout the docs — don't flag it.
 const FORBIDDEN = [
-  { pattern: /bryantchi/gi, label: "username 'bryantchi'", allowIn: ["package.json", "LICENSE", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "README.md", "CHANGELOG.md"] },
+  { pattern: /bryantchi/g, label: "lowercase username 'bryantchi'", allowIn: ["package.json", "LICENSE", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "README.md", "CHANGELOG.md"] },
   { pattern: /\/Users\/[A-Za-z0-9_-]+/g, label: "absolute /Users/<name> path", allowIn: [] },
   { pattern: /\/home\/[A-Za-z0-9_-]+/g, label: "absolute /home/<name> path", allowIn: [] }
 ];

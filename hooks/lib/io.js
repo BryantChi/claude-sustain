@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyOverrides } from "../../lib/overrides.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || resolve(__dirname, "../..");
@@ -22,5 +23,6 @@ export function writeJson(obj) {
 }
 
 export function loadSpec() {
-  return JSON.parse(readFileSync(resolve(PLUGIN_ROOT, "rules/spec.json"), "utf8"));
+  const base = JSON.parse(readFileSync(resolve(PLUGIN_ROOT, "rules/spec.json"), "utf8"));
+  return applyOverrides(base);
 }

@@ -5,6 +5,26 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-04-29
+
+### Added
+- **User overrides layer (`~/.claude/sustain/overrides.json`).** Anything
+  written there wins over the bundled `spec.json` at runtime. Merge is
+  id-aware (matches `ironRules[].id`, `phaseChecklist[].id`,
+  `details.R<n>.rules[].id`, and `skillRouting[].when`) so users can tweak
+  one rule without re-stating the whole table. Plugin code never writes
+  to `spec.json` — your customizations survive `/plugin update`.
+  - `lib/overrides.js → applyOverrides(spec, overrides?)` — pure merge.
+  - `hooks/lib/io.js → loadSpec()` — auto-applies overrides for every hook.
+- **`/sustain:update-rules` command** — opt-in: `WebFetch` the latest
+  `spec.json` from `BryantChi/claude-sustain`, diff against bundled, write
+  user-accepted changes to `overrides.json`. Never modifies the plugin's
+  own directory.
+
+### Changed
+- README rewritten for v0.4+ reality (was still describing v0.1 MVP).
+  Now lists every feature, command, skill, and configuration knob.
+
 ## [0.4.0] — 2026-04-29
 
 ### Changed
