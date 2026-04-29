@@ -8,6 +8,10 @@ dist/
 state.json
 overrides.json
 
+# Override the user's global gitignore for GEMINI.md — in this repo it's
+# a generated artifact we want to commit (so the CI idempotency check is real).
+!GEMINI.md
+
 # Local validation snapshots — contain absolute project paths and session IDs.
 # Keep these private to the developer's machine.
 docs/validation/*.json

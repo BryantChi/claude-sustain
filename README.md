@@ -1,127 +1,169 @@
 # claude-sustain
 
-> Token-efficiency rules, skill routing, enforcement hooks, memory subsystem, audit, and cross-platform `AGENTS.md` generation for sustainable long-term Claude Code use.
+> 給 Claude Code 用的 Token 節省規則 + Skill 路由 + 自動提醒 + 記憶子系統 + 跨平台 AGENTS.md 產生器。讓 AI 用得久、用得省、用得好。
 
-`claude-sustain` is a Claude Code plugin that turns the "I should remember to do X" rules that usually live in a personal `CLAUDE.md` into an **enforced**, **measurable**, **portable**, and **healthy-over-time** layer:
+## 為什麼做這個
 
-- **Enforced** — `PreToolUse` / `UserPromptSubmit` / `Stop` / `SessionStart` hooks surface a reminder when you (or the agent) drift from the rules, before context is wasted.
-- **Measurable** — the `Stop` hook tallies session tokens and writes a daily JSONL telemetry log; `/sustain:status` shows a 7-day moving average so "is this saving tokens?" has an answer.
-- **Portable** — a single `rules/spec.json` is the source of truth; generators emit `CLAUDE.md`, `AGENTS.md`, and `GEMINI.md` so the same rules work in Claude Code, Codex CLI, and Gemini CLI.
-- **Self-healing** — `/sustain:audit` flags stale memory entries, near-duplicate slugs, and skill-routing drift. Routing is **runtime-filtered**: entries pointing at uninstalled plugins are silently skipped instead of degrading to no-ops.
+長期跟 AI 配合寫程式，會發現自己一直在重複交代同一件事：「不要讀整個檔案」「subagent 要寫字數上限」「重複改用 perl 不要一個個編輯」⋯這些規則寫進 CLAUDE.md 會被忽略，貼在每次對話又煩。
 
-## Features
+更深的問題是：
 
-### Rules (always on)
+- **Token 越燒越多**：context 一長就爆，但 AI 永遠記不住「該節省」這件事。
+- **跨 session 沒記憶**：今天教過明天又問。
+- **跨工具沒辦法重用**：Claude Code 的設定搬到 Codex CLI 又要重弄。
+- **沒法量化**：「規則有沒有省到 token？」答不出來。
 
-- **Iron Rules (3+1)** — user intent first, subagent word caps + escape clause, repeated edits via `perl + git diff`, template-before-bulk habit. Override the detailed rules below when in conflict.
-- **R1–R5 detail rules** — file reading, searching, subagent hygiene, response style, general guidance. ~25 specific guidelines across the five families.
-- **6-question phase-end checklist** — surfaced automatically on every `Stop` event so phase boundaries don't slip past.
+`claude-sustain` 是為了解決這四件事做的 plugin。
 
-### Skill routing (runtime-filtered)
+## 它做什麼
 
-A curated table mapping scenarios to skills/agents (`spec.skillRouting`). On every `SessionStart` the table is filtered against what's actually installed on the current machine — entries whose target plugin is missing are hidden, so a clean Claude Code install with only `claude-sustain` doesn't see broken references. Run `/sustain:audit` to inspect drift between the table and your install.
+**規則層**（`rules/spec.json` 是唯一真相）
 
-### Memory subsystem
+- 鐵律 3+1：使用者意圖優先 / Subagent 字數上限 + escape clause / 重複編輯改用 perl + git diff / 規劃 N 個相似 task 先模板化
+- R1–R5 細則：檔案讀取、搜尋、subagent、回應、通用規則 ~25 條
+- 階段結束 6 問自檢
 
-- **Multi-backend abstraction** — auto-detects [MemPalace](https://github.com/mempalace/mempalace) (MIT, primary) and [claude-mem](https://github.com/thedotmack/claude-mem) (AGPL-3.0, secondary, referenced via MCP only — never statically linked) at every `SessionStart`; falls back to a durable structured filesystem store at `~/.claude/sustain/memory/` modeled after MemPalace's wings/rooms/drawers.
-- **Skills**: `memory-write-router` (where to persist), `memory-search-bridge` ("how did we solve X before?"), `audit-memory` (stale/duplicate hygiene).
-- **Migration helper**: `lib/audit/migrate.js → buildPlan()` produces an upload plan when MemPalace becomes installed.
+**強制層**（hooks 自動提醒）
 
-### Telemetry
+- `SessionStart` 注入規則 primer + 偵測 memory backend + 過濾 skill routing
+- `UserPromptSubmit` 偵測「逐個 / 仔細 / 全部 / thoroughly」等鐵律 1 觸發詞
+- `PreToolUse` 攔截 Task subagent 沒寫字數上限的呼叫
+- `Stop` 印階段六問 + token 統計 + 寫 telemetry log
 
-- `Stop` hook appends per-phase tokens to `~/.claude/sustain/telemetry/<YYYY-MM-DD>.jsonl`.
-- `lib/telemetry.js → movingAverage({ sinceDays })` — used by `/sustain:status` for trend analysis.
-- `token-budget-coach` skill — interprets the numbers and recommends `/compact` / subagent / model switch.
+**記憶層**（多 backend 抽象）
 
-### Audit
+- 自動偵測 [MemPalace](https://github.com/mempalace/mempalace)（MIT，主選）和 [claude-mem](https://github.com/thedotmack/claude-mem)（AGPL-3.0，次選，只透過 MCP 引用永不靜態連結）
+- 都沒裝 → 自動降級到結構化的檔案系統 fallback（仿 mempalace 的 wings/rooms/drawers，未來可無痛轉移）
+- 三個對應 skill：`memory-write-router` / `memory-search-bridge` / `audit-memory`
 
-- `/sustain:audit` runs two scanners and reports without ever auto-deleting:
-  - **Memory audit** — drawers stale > 90 days, near-duplicate slugs (bigram Jaccard ≥ 0.7), URLs to verify.
-  - **Routing audit** — referenced skills/agents not installed, installed skills not routed.
-- The `audit-memory` skill walks the user through actionable items.
+**觀測層**
 
-### Cross-platform
+- 每次 Stop 寫一筆到 `~/.claude/sustain/telemetry/<日期>.jsonl`
+- `/sustain:status` 顯示當下 + 7 日移動平均
+- `token-budget-coach` skill 解讀數字、建議 `/compact` / 切 subagent / 換模型
 
-- `/sustain:export` writes `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` into any directory.
-- `AGENTS.md` symlinks to `CLAUDE.md` in this repo so other AGENTS.md-aware tools (Codex CLI, Gemini CLI, etc.) read the same rules.
+**自我修護**
 
-## Install
+- `/sustain:audit` 掃 memory（>90 天沒動的 / slug 太相近的重複 / 抽出 URL 給你檢查）+ skill routing（spec 列了沒裝的 / 裝了沒列的）
+- 永遠只報告，不自動刪
+- Skill routing 在每次 SessionStart 會**動態過濾**：只顯示當前機器真的有裝的 entries，避免使用者看到一份兌現不了的菜單
+
+**跨平台**
+
+- 同一份 `spec.json` 產出 `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`
+- `/sustain:export` 寫進任何專案目錄
+- 本 repo 的 `AGENTS.md` symlink 到 `CLAUDE.md`，讓 Codex CLI / Gemini CLI 等吃 AGENTS.md 的工具直接能讀
+
+## 安裝
 
 ```text
 /plugin marketplace add BryantChi/claude-sustain
 /plugin install claude-sustain@claude-sustain
 ```
 
-Then restart Claude Code (full CLI exit + relaunch — `/clear` is not enough). New sessions show:
+完整重啟 Claude Code（`/clear` 不夠 — 要 CLI 退出再重開）。新 session 應該看到：
 
-- A one-line `systemMessage`: `[claude-sustain v0.4.0] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>`
-- A primer with the Iron Rules, the active routing entries, and the detected memory backend in `additionalContext`.
-- A phase-end checklist + token tally on every `Stop`.
+- `[claude-sustain v0.5.0] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>` 一行
+- 鐵律 + 過濾過的 routing 表 + 偵測到的 memory backend（在 Claude 的 context 裡）
+- 每次 Stop 顯示六問 checklist + token 行
 
-You can also install from a local clone:
+從本機 clone 安裝：
 
 ```text
 /plugin marketplace add /path/to/claude-sustain
 /plugin install claude-sustain@claude-sustain
 ```
 
-## Commands
+## 指令
 
-| Command | Purpose |
+| 指令 | 用途 |
 | --- | --- |
-| `/sustain:status` | Active rules, routing coverage, memory backend, session tokens, 7-day telemetry averages, recommended next move. |
-| `/sustain:audit` | Memory + routing health scan. Reports only; never auto-deletes. |
-| `/sustain:export` | Write `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` into any directory. |
+| `/sustain:status` | 看當前規則、routing 涵蓋、memory backend、session token、7 日移動平均、建議下一步 |
+| `/sustain:audit` | Memory + routing 健診。只報告、永不自動刪 |
+| `/sustain:export` | 把 `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` 寫進指定目錄 |
+| `/sustain:update-rules` | 從 GitHub 拉最新 spec、diff 給你看、寫進 `~/.claude/sustain/overrides.json`（永不動 plugin 目錄） |
 
 ## Skills
 
-| Skill | When |
+| Skill | 觸發場景 |
 | --- | --- |
-| `token-rules-primer` | Re-ground the Iron Rules + R1–R5 mid-session. |
-| `phase-self-check` | Walk the 6-question checklist explicitly. |
-| `memory-write-router` | Decide whether and where to persist a learning. |
-| `memory-search-bridge` | "How did we solve X before?" — routes to mempalace MCP / claude-mem MCP / fs grep. |
-| `token-budget-coach` | Interpret token stats; recommend `/compact` / subagent / model switch. |
-| `audit-memory` | Process `/sustain:audit` results with the user. |
+| `token-rules-primer` | 重新建立鐵律 + R1–R5 的記憶 |
+| `phase-self-check` | 走完 6 問 checklist |
+| `memory-write-router` | 決定要不要存、存哪 |
+| `memory-search-bridge` | 「以前怎麼做的」回想 |
+| `token-budget-coach` | 解讀 token 統計、建議下一步 |
+| `audit-memory` | 走完 audit 報告的可行動項目 |
 
-## Configuration
+## 設定
 
-Per-user overrides live in `~/.claude/sustain/overrides.json` (create yourself; never ships with the plugin). Anything there wins over the bundled spec — the plugin **never silently overwrites** user configuration.
+### 個人化規則覆蓋
 
-Environment variable overrides for memory backend detection:
+編輯 `~/.claude/sustain/overrides.json`（你自己建立，plugin 永遠不會動它）。內容是 `spec.json` 的子集，依 id 對齊合併：改一條規則不用重列整張表。
 
-| Variable | Purpose |
+範例 — 客製化 R1.3 的描述：
+
+```jsonc
+{
+  "details": {
+    "R1": {
+      "rules": [
+        { "id": "R1.3", "text": "檔案 > 500 行：只讀相關段落，別整檔。" }
+      ]
+    }
+  }
+}
+```
+
+升級 plugin（`/plugin update` 或 `/sustain:update-rules`）時，bundled 規則會更新但你的 overrides 不會被蓋掉。
+
+### 環境變數
+
+| 變數 | 用途 |
 | --- | --- |
-| `CLAUDE_SUSTAIN_FORCE_BACKEND` | `mempalace` / `claude-mem` / `fs` — bypass auto-detection. |
-| `CLAUDE_SUSTAIN_MEMPALACE_PATH` | Absolute path to a non-standard mempalace install. |
-| `CLAUDE_SUSTAIN_CLAUDE_MEM_PATH` | Absolute path to a non-standard claude-mem install. |
+| `CLAUDE_SUSTAIN_FORCE_BACKEND` | `mempalace` / `claude-mem` / `fs` — 跳過自動偵測 |
+| `CLAUDE_SUSTAIN_MEMPALACE_PATH` | MemPalace 安裝在非標準路徑時用 |
+| `CLAUDE_SUSTAIN_CLAUDE_MEM_PATH` | claude-mem 安裝在非標準路徑時用 |
 
-## License & dependencies
+## 文件
 
-`claude-sustain` is **MIT**.
+- [docs/architecture.md](docs/architecture.md) — 三層架構、每個 hook 的 data flow、模組依賴圖
+- [docs/configuration.md](docs/configuration.md) — overrides.json schema、檔案位置、更新與解除安裝流程
+- [docs/extending.md](docs/extending.md) — 怎麼加 skill / hook / memory backend / audit 檢查
+- [CHANGELOG.md](CHANGELOG.md) — 完整版本歷史
 
-It optionally cooperates with two memory backends but never imports either:
+## License 與依賴
 
-- **MemPalace (MIT)** — primary; referenced through MCP tools.
-- **claude-mem (AGPL-3.0)** — secondary; referenced through MCP tools only. Plugin code does not statically link any claude-mem source, which keeps this plugin free of AGPL infection.
+`claude-sustain` 是 **MIT**。
 
-## Why "sustain"?
+可選整合兩個 memory backend，但**程式碼從不直接 import 任何一邊**：
 
-Most rule systems for AI coding fail one of two ways: they're too aggressive (the agent fights them, you lose more tokens than you save), or they're forgotten by mid-session because nothing notices. `sustain` aims for the durable middle: a small hard core of rules (the Iron Rules), hooks that notice drift before it costs much, a memory layer that survives across sessions, and a measurement loop that tells you whether it's working.
+- **MemPalace（MIT）** — 主選，透過 MCP 工具引用
+- **claude-mem（AGPL-3.0）** — 次選，**只**透過 MCP 工具引用，plugin 程式碼不靜態連結，避免 AGPL 感染
 
-## Project status
+## 為什麼叫 sustain
 
-v0.4.0 — past MVP. Memory + telemetry + audit + runtime routing filter are all live. v2.0 will add OTLP-based telemetry, an A/B framework for rules-on vs rules-off comparison, and a dashboard. See [`CHANGELOG.md`](CHANGELOG.md) for the full version history.
+大多數規則系統壞兩種：要嘛太兇（agent 跟你打架，省的 token 還沒違規多），要嘛沒人管（中段就忘）。`sustain` 想要的是中間地帶：
 
-Feedback on rule wording, hook ergonomics, and skill routing scenarios is welcome via [GitHub issues](https://github.com/BryantChi/claude-sustain/issues).
+- 一小撮硬規則（鐵律）
+- Hooks 在事情失控前先提醒
+- Memory 跨 session 留得住
+- Telemetry 告訴你規則有沒有真的省到
+
+## 專案狀態
+
+v0.5.0 — 過了 MVP。Memory + telemetry + audit + 動態 routing 過濾 + 個人化覆蓋都已實作。下一階段（v2.0）會加 OTLP-based telemetry、A/B 對照框架（規則開/關比較）、dashboard。
+
+## 反饋
+
+issue / PR 歡迎丟到 [GitHub](https://github.com/BryantChi/claude-sustain/issues)。
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+MIT。詳見 [`LICENSE`](LICENSE)。
 
 ## Acknowledgements
 
-- [superpowers](https://github.com/obra/superpowers) — plugin structure and hook conventions.
-- [claude-mem](https://github.com/thedotmack/claude-mem) — memory backend (optional, AGPL-3.0; referenced via MCP only).
-- [MemPalace](https://github.com/mempalace/mempalace) — alternative memory backend (optional, MIT).
-- [AGENTS.md standard](https://agents.md/) — cross-platform rule file convention.
+- [superpowers](https://github.com/obra/superpowers) — plugin 結構與 hook 約定
+- [claude-mem](https://github.com/thedotmack/claude-mem) — memory backend 之一（AGPL-3.0；只透過 MCP 引用）
+- [MemPalace](https://github.com/mempalace/mempalace) — 另一個 memory backend（MIT）
+- [AGENTS.md 標準](https://agents.md/) — 跨平台規則檔案約定
