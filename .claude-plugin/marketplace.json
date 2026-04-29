@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "claude-sustain",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "source": "./",
       "description": "Token-efficiency rules, skill routing, enforcement hooks, and cross-platform AGENTS.md generation for Claude Code.",
       "author": {

@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.2.0.
+> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.3.0.
 > This file follows the AGENTS.md cross-platform standard (agents.md).
 
 ## Language
@@ -51,6 +51,7 @@ These override the detailed rules below when in conflict.
 | Token budget interpretation, compact decisions | `claude-sustain:token-budget-coach` |
 | End-of-phase 6-question check | `claude-sustain:phase-self-check` |
 | Decide whether and where to persist a learning | `claude-sustain:memory-write-router` |
+| Memory health check (stale/duplicate/dead-URL) and routing drift | `claude-sustain:audit-memory` |
 
 ### R1: File Reading
 

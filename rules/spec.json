@@ -1,6 +1,6 @@
 {
   "$schema": "./spec.schema.json",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "metadata": {
     "name": "claude-sustain",
     "title": "Token Efficiency & Sustainable AI Use",
@@ -138,7 +138,8 @@
     { "when": "Configure hooks / permissions", "use": "update-config", "source": "anthropic" },
     { "when": "Token budget interpretation, compact decisions", "use": "claude-sustain:token-budget-coach", "source": "claude-sustain" },
     { "when": "End-of-phase 6-question check", "use": "claude-sustain:phase-self-check", "source": "claude-sustain" },
-    { "when": "Decide whether and where to persist a learning", "use": "claude-sustain:memory-write-router", "source": "claude-sustain" }
+    { "when": "Decide whether and where to persist a learning", "use": "claude-sustain:memory-write-router", "source": "claude-sustain" },
+    { "when": "Memory health check (stale/duplicate/dead-URL) and routing drift", "use": "claude-sustain:audit-memory", "source": "claude-sustain" }
   ],
   "memoryBackends": {
     "preferred": "auto",

@@ -5,6 +5,23 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-04-29
+
+### Added
+- M6 audit subsystem (never auto-deletes — produces a report the user reviews):
+  - `lib/audit/memory.js` — flags drawers stale > 90 days, near-duplicate
+    slugs (bigram Jaccard ≥ 0.7) within the same wing, and extracts URLs
+    for manual verification.
+  - `lib/audit/routing.js` — scans `~/.claude/skills` and every plugin's
+    `skills/` dir, diffs against `spec.skillRouting`, reports missing
+    references and unrouted installations.
+  - `lib/audit/migrate.js` — fs → mempalace migration plan builder; writes
+    `~/.claude/sustain/migration-plan.json` with one suggested
+    `mcp__mempalace__store` call per drawer for the model to execute.
+- `audit-memory` skill — walks the user through audit results, never
+  deletes without explicit consent, batches stale items.
+- `/sustain:audit` command — runs both scanners and routes to the skill.
+
 ## [0.2.0] — 2026-04-29
 
 ### Added

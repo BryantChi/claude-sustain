@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> Generated from `claude-sustain/rules/spec.json` v0.2.0.
+> Generated from `claude-sustain/rules/spec.json` v0.3.0.
 > Edit the spec, not this file.
 
 ## Language
@@ -51,6 +51,7 @@ These override the detailed rules below when in conflict.
 | Token budget interpretation, compact decisions | `claude-sustain:token-budget-coach` |
 | End-of-phase 6-question check | `claude-sustain:phase-self-check` |
 | Decide whether and where to persist a learning | `claude-sustain:memory-write-router` |
+| Memory health check (stale/duplicate/dead-URL) and routing drift | `claude-sustain:audit-memory` |
 
 ### R1: File Reading
 
