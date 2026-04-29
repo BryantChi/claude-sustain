@@ -1,5 +1,8 @@
 # claude-sustain
 
+[![CI](https://github.com/BryantChi/claude-sustain/actions/workflows/ci.yml/badge.svg)](https://github.com/BryantChi/claude-sustain/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > 給 Claude Code 用的 Token 節省規則 + Skill 路由 + 自動提醒 + 記憶子系統 + 跨平台 AGENTS.md 產生器。讓 AI 用得久、用得省、用得好。
 
 ## 為什麼做這個
