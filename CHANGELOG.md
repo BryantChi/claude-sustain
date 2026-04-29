@@ -5,6 +5,33 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-04-29
+
+### Changed
+- **Skill routing is now runtime-filtered.** Previously the full
+  `spec.skillRouting` table (21 entries referencing superpowers / claude-mem
+  / codex / gemini / Anthropic built-ins) was emitted into CLAUDE.md verbatim.
+  On a clean Claude Code install with only claude-sustain present, ~13 of
+  those entries pointed at plugins that weren't installed — Claude saw the
+  routing instructions but couldn't execute them, resulting in silent
+  degradation.
+- SessionStart now invokes `lib/routing/filter.js → filterRouting(spec)`
+  and injects only the *available* entries into `additionalContext`. The
+  systemMessage shows `X/Y skill routes` so the user knows immediately what
+  fraction of the routing menu is reachable.
+- Generators (`render.js`) add a note to the static routing table in
+  CLAUDE.md/AGENTS.md explaining that the SessionStart hook re-evaluates the
+  table per session and skips unavailable entries silently.
+
+### Added
+- `lib/routing/match.js` — shared matcher used by both the audit (drift
+  report) and the filter (runtime gating), so what the audit accepts is
+  exactly what the filter shows.
+- `lib/routing/filter.js` — partitions `spec.skillRouting` into
+  `available[]` / `unavailable[]` against the installed skills + agents.
+- 6 unit tests covering OR-clauses, arrow chains, Anthropic built-ins, and
+  the `ns:name` ↔ `ns-name.md` agent convention.
+
 ## [0.3.1] — 2026-04-29
 
 ### Fixed

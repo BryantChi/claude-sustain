@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.3.1.
+> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.4.0.
 > This file follows the AGENTS.md cross-platform standard (agents.md).
 
 ## Language
@@ -32,6 +32,8 @@ These override the detailed rules below when in conflict.
 6. Anything from this phase worth long-term memory (rule, decision, external resource, project-state change)? Persist it as feedback / project / reference.
 
 ### Skill / Tool Routing
+
+> Some entries below reference plugins that may not be installed in your environment. Treat the table as a menu — entries whose target tool is missing are no-ops.
 
 | Scenario | Use |
 | --- | --- |

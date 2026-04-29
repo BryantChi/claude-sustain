@@ -96,8 +96,10 @@ test("SessionStart: emits primer with version, Claude-context and user systemMes
   assert.match(out.hookSpecificOutput.additionalContext, /claude-sustain v/);
   assert.match(out.hookSpecificOutput.additionalContext, /IRON-1/i);
   assert.match(out.hookSpecificOutput.additionalContext, /Memory backend/);
+  assert.match(out.hookSpecificOutput.additionalContext, /Skill routing — \d+\/\d+ entries available/);
   assert.match(out.systemMessage, /claude-sustain v/);
   assert.match(out.systemMessage, /active/);
+  assert.match(out.systemMessage, /\d+\/\d+ skill routes/);
   assert.match(out.systemMessage, /memory: (fs|mempalace|claude-mem)/);
 });
 

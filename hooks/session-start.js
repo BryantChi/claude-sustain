@@ -1,9 +1,12 @@
-// SessionStart hook — inject a brief rules primer + refresh memory backend detection.
-// Keep it short to avoid bloating context; users can run /sustain:status for full rules.
+// SessionStart hook — inject a brief rules primer, refresh memory backend
+// detection, and surface a routing menu filtered to what's actually installed
+// on this machine. Without runtime filtering, a clean install would see all
+// 21 routing entries but only 8 would dispatch.
 
 import { writeJson, loadSpec } from "./lib/io.js";
 import { detect } from "../lib/memory/detect.js";
 import { writeState } from "../lib/memory/state.js";
+import { filterRouting } from "../lib/routing/filter.js";
 
 let spec;
 try { spec = loadSpec(); } catch { process.exit(0); }
@@ -16,19 +19,33 @@ try {
   detection = { preferred: "fs", backends: { mempalace: { installed: false }, claudeMem: { installed: false } } };
 }
 
+let routing;
+try { routing = filterRouting(spec); }
+catch { routing = { available: spec.skillRouting || [], unavailable: [], totalCount: (spec.skillRouting || []).length, installedCount: 0 }; }
+
 const ironLines = spec.ironRules.map(r => `  - ${r.id.toUpperCase()} ${r.title}: ${r.summary}`);
 const backendLine = describeBackend(detection);
+const routingTable = routing.available.length
+  ? routing.available.map(e => `    - ${e.when} → ${e.use}`).join("\n")
+  : "    (no routing entries are currently reachable; install superpowers / claude-mem / etc. to enable)";
 
 const primer = [
   `[claude-sustain v${spec.version}] Token-efficiency rules active:`,
   ...ironLines,
   `  Phase-end: ${spec.phaseChecklist.length}-question self-check on Stop.`,
-  `  Skill routing: ${spec.skillRouting.length} scenarios mapped — see /sustain:status.`,
+  `  Skill routing — ${routing.available.length}/${routing.totalCount} entries available on this machine:`,
+  routingTable,
+  routing.unavailable.length
+    ? `    (${routing.unavailable.length} entries hidden because their plugin isn't installed; run /sustain:audit for details.)`
+    : "    (full routing table is reachable on this install.)",
   `  Memory backend: ${backendLine}`
 ].join("\n");
 
 writeJson({
-  systemMessage: `[claude-sustain v${spec.version}] active — ${spec.ironRules.length} Iron Rules + ${spec.phaseChecklist.length}-question phase check + ${spec.skillRouting.length} skill routes · memory: ${detection.preferred}`,
+  systemMessage:
+    `[claude-sustain v${spec.version}] active — ${spec.ironRules.length} Iron Rules + ` +
+    `${spec.phaseChecklist.length}-question phase check + ` +
+    `${routing.available.length}/${routing.totalCount} skill routes · memory: ${detection.preferred}`,
   hookSpecificOutput: {
     hookEventName: "SessionStart",
     additionalContext: primer

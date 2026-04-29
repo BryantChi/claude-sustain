@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> Generated from `claude-sustain/rules/spec.json` v0.3.1.
+> Generated from `claude-sustain/rules/spec.json` v0.4.0.
 > Edit the spec, not this file.
 
 ## Language
@@ -32,6 +32,8 @@ These override the detailed rules below when in conflict.
 6. Anything from this phase worth long-term memory (rule, decision, external resource, project-state change)? Persist it as feedback / project / reference.
 
 ### Skill Routing
+
+> The SessionStart hook re-evaluates this table on every session and surfaces only the entries whose target skill / agent is actually installed. Entries below whose plugin is missing are silently skipped at runtime — install the corresponding plugin to activate them.
 
 | Scenario | Use |
 | --- | --- |
