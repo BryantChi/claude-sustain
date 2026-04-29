@@ -5,6 +5,32 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] — 2026-04-29
+
+### Added
+- **`modelHint` block in spec.json.** The lookup-verb / heavy-keyword lists used
+  by the PreToolUse model-routing hint were previously hard-coded inside
+  `lib/routing/model-hint.js`. Now they live in `spec.json.modelHint` (regex
+  source strings) and the heuristic accepts a `config` parameter. Users can
+  extend the lists for their domain via `~/.claude/sustain/overrides.json`:
+  - Default behavior: `modelHint.lookupVerbs` and `modelHint.heavyKeywords`
+    arrays in overrides **append** to the bundled lists (so you don't lose
+    the defaults when adding domain terms).
+  - Pass `replaceLookupVerbs: true` (or `replaceHeavyKeywords: true`) to wipe
+    the base list and use only your entries.
+  - `modelHint.wordLimit` replaces the bundled value if provided.
+- **`/sustain:status` now surfaces v0.6 enforcement / notification config**:
+  shows `strict.json` state (ironGate on/off, bypass count), `notify.json`
+  state (format, threshold, masked webhook host), last notification fire
+  timestamp from `notify-state.json`, and the active modelHint config sizes
+  with an `_appliedOverrides` indicator when user customizations are merged.
+- **README "v0.6 三件新東西 — 30 秒體驗" section** at the top with copy-paste
+  commands for each opt-in feature.
+
+### Changed
+- spec.json bumped to 0.6.1; gains the `modelHint` block as the single source
+  of truth for the model-routing heuristic patterns.
+
 ## [0.6.0] — 2026-04-29
 
 ### Added

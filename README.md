@@ -18,6 +18,29 @@
 
 `claude-sustain` 是為了解決這四件事做的 plugin。
 
+## v0.6 三件新東西 — 30 秒體驗
+
+裝完 plugin 之後預設行為跟 v0.5 一樣（不開硬閘、不推訊息）。三件新功能都是 opt-in。
+
+**1. Lookup 自動建議便宜模型**（已開、零設定）
+你叫 Claude「找出 src/ 下所有 console.log」→ PreToolUse 看到是查找型 prompt → systemMessage 提醒 Claude 加 `model: "haiku"`。
+
+**2. Iron-2 hard-gate（subagent 沒寫字數上限就擋）**
+```sh
+cp examples/strict.json ~/.claude/sustain/strict.json
+# 編輯把 ironGate 改成 true
+```
+之後 Task 漏掉「≤ 800 字」「不受字數限制」就會被 Claude Code 直接拒絕。已預列 OMC / superpowers 常見模板的 bypass pattern。
+
+**3. 長 session 跑完推訊息**
+```sh
+cp examples/notify.json ~/.claude/sustain/notify.json
+# 把 webhook URL 換成你的 Slack/Discord/Telegram
+```
+session token 超過 100k 或時間超過 10 分鐘就推。網路掛掉永不擋 Stop。
+
+`/sustain:status` 隨時查目前哪些開、哪些關。
+
 ## 它做什麼
 
 **規則層**（`rules/spec.json` 是唯一真相）
@@ -66,7 +89,7 @@
 
 完整重啟 Claude Code（`/clear` 不夠 — 要 CLI 退出再重開）。新 session 應該看到：
 
-- `[claude-sustain v0.6.0] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>` 一行
+- `[claude-sustain v0.6.1] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>` 一行
 - 鐵律 + 過濾過的 routing 表 + 偵測到的 memory backend（在 Claude 的 context 裡）
 - 每次 Stop 顯示六問 checklist + token 行
 

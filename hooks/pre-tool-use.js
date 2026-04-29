@@ -45,7 +45,10 @@ const hasEscape = ESCAPE_PATTERNS.some(p => p.test(prompt));
 
 const strict = loadStrict();
 const bypassed = strict.bypassPatterns.some(p => p && prompt.includes(p));
-const hint = modelHint({ prompt, explicitModel });
+
+let hintConfig = null;
+try { hintConfig = loadSpec()?.modelHint || null; } catch { hintConfig = null; }
+const hint = modelHint({ prompt, explicitModel, config: hintConfig });
 
 const messages = [];
 let denyReason = null;

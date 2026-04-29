@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use — Gemini entry point
 
-> Generated from `claude-sustain/rules/spec.json` v0.6.0.
+> Generated from `claude-sustain/rules/spec.json` v0.6.1.
 
 Please read [AGENTS.md](./AGENTS.md) for the full rule set.
 

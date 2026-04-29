@@ -1,6 +1,6 @@
 {
   "$schema": "./spec.schema.json",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "metadata": {
     "name": "claude-sustain",
     "title": "Token Efficiency & Sustainable AI Use",
@@ -146,6 +146,23 @@
     { "when": "Decide whether and where to persist a learning", "use": "claude-sustain:memory-write-router", "source": "claude-sustain" },
     { "when": "Memory health check (stale/duplicate/dead-URL) and routing drift", "use": "claude-sustain:audit-memory", "source": "claude-sustain" }
   ],
+  "modelHint": {
+    "wordLimit": 200,
+    "lookupVerbs": [
+      "\\bfind\\b", "\\blist\\b", "\\blocate\\b", "\\bgrep\\b", "\\bsearch\\b",
+      "\\bread\\b", "\\bcheck\\b", "\\bcount\\b", "\\benumerate\\b", "\\binventory\\b",
+      "\\bsurvey\\b", "\\bidentify\\b", "\\blookup\\b",
+      "查找", "找出", "列出", "盤點", "搜尋", "檢查", "讀取", "統計"
+    ],
+    "heavyKeywords": [
+      "\\bdesign\\b", "\\brefactor", "\\bimplement", "\\brewrite\\b",
+      "\\bdebug", "\\breview\\b", "\\bsecurity\\b", "\\bcompliance\\b",
+      "\\bmigrat", "\\barchitect", "\\bplan\\b", "\\bspec\\b", "\\bdesign doc\\b",
+      "設計", "重構", "實作", "實做", "除錯", "審查", "審核", "安全", "合規",
+      "架構", "規劃"
+    ],
+    "_doc": "Patterns for the lookup-style Task detector (R3.6). Each entry is a regex source compiled with /<src>/i. Override via overrides.json: provide modelHint.{lookupVerbs,heavyKeywords} as arrays — by default they APPEND to the bundled list; pass modelHint.replaceLookupVerbs=true (or replaceHeavyKeywords=true) to wipe the base list and use only your entries."
+  },
   "userConfig": {
     "ironGate": {
       "file": "~/.claude/sustain/strict.json",

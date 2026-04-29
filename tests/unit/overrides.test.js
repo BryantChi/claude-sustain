@@ -109,6 +109,32 @@ test("applyOverrides: sets _appliedOverrides marker", async () => {
   assert.equal(result._appliedOverrides, true);
 });
 
+test("applyOverrides: modelHint arrays APPEND to base by default", async () => {
+  const base = {
+    ...BASE_SPEC,
+    modelHint: { wordLimit: 200, lookupVerbs: ["\\bfind\\b"], heavyKeywords: ["\\bdesign\\b"] },
+  };
+  writeOverrides({ modelHint: { lookupVerbs: ["\\bcatalog\\b"], heavyKeywords: ["\\baudit\\b"] } });
+  const { applyOverrides, readOverrides } = await freshImport("../../lib/overrides.js");
+  const result = applyOverrides(base, readOverrides());
+  assert.deepEqual(result.modelHint.lookupVerbs, ["\\bfind\\b", "\\bcatalog\\b"]);
+  assert.deepEqual(result.modelHint.heavyKeywords, ["\\bdesign\\b", "\\baudit\\b"]);
+  assert.equal(result.modelHint.wordLimit, 200);
+});
+
+test("applyOverrides: modelHint arrays REPLACE when replace flag is true", async () => {
+  const base = {
+    ...BASE_SPEC,
+    modelHint: { wordLimit: 200, lookupVerbs: ["\\bfind\\b"], heavyKeywords: ["\\bdesign\\b"] },
+  };
+  writeOverrides({ modelHint: { lookupVerbs: ["\\bonly\\b"], replaceLookupVerbs: true, wordLimit: 50 } });
+  const { applyOverrides, readOverrides } = await freshImport("../../lib/overrides.js");
+  const result = applyOverrides(base, readOverrides());
+  assert.deepEqual(result.modelHint.lookupVerbs, ["\\bonly\\b"]);
+  assert.deepEqual(result.modelHint.heavyKeywords, ["\\bdesign\\b"]);
+  assert.equal(result.modelHint.wordLimit, 50);
+});
+
 test("applyOverrides: malformed overrides.json is treated as no overrides", async () => {
   writeOverrides("not json"); // writeFileSync will stringify this — actually let's write raw bytes
   const dir = join(tmp, ".claude", "sustain");
