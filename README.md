@@ -132,6 +132,10 @@
 
 開啟後，`Task` prompt 缺字數上限或 escape clause 會直接被 Claude Code 擋掉（`permissionDecision=deny`）。`bypassPatterns` 給內部信任模板留逃生口。
 
+範例設定：[`examples/strict.json`](examples/strict.json) — 已預先列出 oh-my-claudecode / superpowers Explore agent 等常見模板的 pattern。
+
+> ⚠️ **與 oh-my-claudecode 共存**：先保持 `ironGate: false` 跑 1 週收 telemetry，看哪些 OMC dispatch 被警告，再把它們加進 `bypassPatterns`，**最後**才開硬閘。直接開會把 OMC 大半功能擋掉。
+
 ### Stop 通知 webhook（v0.6+）
 
 長 session 跑完想被推訊息？建立 `~/.claude/sustain/notify.json`：
@@ -146,6 +150,8 @@
 ```
 
 `format` 支援 `slack` / `discord` / `telegram` / `raw`。網路失敗或 timeout 永遠不會擋住 `Stop`。
+
+範例設定：[`examples/notify.json`](examples/notify.json)。
 
 ### 環境變數
 
@@ -171,6 +177,24 @@
 
 - **MemPalace（MIT）** — 主選，透過 MCP 工具引用
 - **claude-mem（AGPL-3.0）** — 次選，**只**透過 MCP 工具引用，plugin 程式碼不靜態連結，避免 AGPL 感染
+
+## 與其他 plugin 共存
+
+### oh-my-claudecode (OMC)
+互補，沒 hard conflict。OMC 補 sustain 沒做的執行模式 + 平行化；sustain 補 OMC 沒做的跨平台規則 + audit + 通知。
+
+**設定步驟**：
+1. 安裝 OMC：`/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode` → `/plugin install oh-my-claudecode`
+2. 完整重啟 Claude Code
+3. sustain `strict.json` 保持 `ironGate: false` 跑 1 週
+4. 看 telemetry 哪些 OMC 模板被警告 → 加進 `bypassPatterns`（[examples/strict.json](examples/strict.json) 已預列常見 pattern）
+5. 之後再開硬閘
+
+### superpowers
+sustain 的 routing 表大量指向 superpowers skill，主動建議搭配安裝。沒有衝突。
+
+### claude-mem / mempalace
+sustain 自動偵測，作為 memory backend 之一。mempalace 優先（MIT），claude-mem 透過 MCP 引用（不靜態連結，避免 AGPL）。
 
 ## 為什麼叫 sustain
 

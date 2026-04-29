@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy to ~/.claude/sustain/notify.json. Best-effort POST on Stop when the session crosses tokenTotal or durationMs. format: slack | discord | telegram | raw. Network errors never block Stop.",
+  "webhook": "https://hooks.slack.com/services/REPLACE/WITH/YOUR_WEBHOOK",
+  "format": "slack",
+  "threshold": {
+    "tokenTotal": 100000,
+    "durationMs": 600000
+  },
+  "minIntervalMs": 60000
+}

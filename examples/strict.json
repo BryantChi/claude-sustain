@@ -1,0 +1,18 @@
+{
+  "_comment": "Copy to ~/.claude/sustain/strict.json. ironGate=true makes Iron-2 a hard gate. Default off preserves v0.5 warn-only behavior. bypassPatterns is a list of substrings; if any appears in a Task prompt, the gate is skipped. Pre-seeded entries below cover oh-my-claudecode (OMC) agent dispatchers and superpowers built-in subagents — extend as needed.",
+  "ironGate": false,
+  "bypassPatterns": [
+    "executor agent",
+    "team-plan",
+    "team-prd",
+    "team-exec",
+    "team-verify",
+    "team-fix",
+    "ralph mode",
+    "autopilot",
+    "ultrawork",
+    "deepsearch",
+    "subagent_type: Explore",
+    "subagent_type: \"Explore\""
+  ]
+}
