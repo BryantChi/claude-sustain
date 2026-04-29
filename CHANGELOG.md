@@ -5,6 +5,24 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-04-29
+
+### Fixed
+- Routing audit no longer flags Anthropic built-in skills (`claude-api`,
+  `update-config`, `frontend-design`) as missing — they ship inside Claude
+  Code itself and aren't on disk.
+- Routing audit now scans plugin & user `agents/<name>.md` files alongside
+  `skills/`, and resolves the `ns:name` → `ns-name.md` convention so
+  routing tokens like `codex:rescue` and `gemini:rescue` correctly match
+  `codex-rescue.md` / `gemini-rescue.md`.
+
+### Added
+- Four new skill routing entries:
+  - `superpowers:receiving-code-review` — applying review feedback.
+  - `superpowers:executing-plans` — running an existing plan with checkpoints.
+  - `superpowers:using-git-worktrees` — isolated workspace for risky work.
+  - `superpowers:finishing-a-development-branch` — merge / PR / cleanup.
+
 ## [0.3.0] — 2026-04-29
 
 ### Added

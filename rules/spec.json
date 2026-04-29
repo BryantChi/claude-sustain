@@ -1,6 +1,6 @@
 {
   "$schema": "./spec.schema.json",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "metadata": {
     "name": "claude-sustain",
     "title": "Token Efficiency & Sustainable AI Use",
@@ -130,6 +130,10 @@
     { "when": "2+ independent tasks runnable in parallel", "use": "superpowers:dispatching-parallel-agents", "source": "superpowers" },
     { "when": "Before claiming done / fixed / passing", "use": "superpowers:verification-before-completion", "source": "superpowers" },
     { "when": "Major phase complete, want review", "use": "superpowers:requesting-code-review", "source": "superpowers" },
+    { "when": "Received code review feedback, before applying suggestions", "use": "superpowers:receiving-code-review", "source": "superpowers" },
+    { "when": "Execute an existing written plan with review checkpoints", "use": "superpowers:executing-plans", "source": "superpowers" },
+    { "when": "Need isolated workspace before risky / parallel work", "use": "superpowers:using-git-worktrees", "source": "superpowers" },
+    { "when": "Implementation done — deciding merge / PR / cleanup", "use": "superpowers:finishing-a-development-branch", "source": "superpowers" },
     { "when": "Cross-session lookup (\"how did we solve X before?\")", "use": "claude-sustain:memory-search-bridge", "source": "claude-sustain" },
     { "when": "Structural code navigation (avoid reading whole files)", "use": "claude-mem:smart-explore", "source": "claude-mem" },
     { "when": "Stuck, want second opinion", "use": "codex:rescue OR gemini:rescue", "source": "external-rescue" },

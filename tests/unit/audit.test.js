@@ -82,6 +82,34 @@ test("routing audit: empty spec returns clean report", async () => {
   assert.equal(report.listedButMissing.length, 0);
 });
 
+test("routing audit: Anthropic built-in skills are accepted without filesystem hit", async () => {
+  const r = await freshImport("../../lib/audit/routing.js");
+  const report = r.audit({
+    skillRouting: [
+      { when: "API stuff", use: "claude-api", source: "anthropic" },
+      { when: "config", use: "update-config", source: "anthropic" },
+      { when: "UI", use: "frontend-design", source: "anthropic" },
+    ],
+  });
+  assert.equal(report.listedButMissing.length, 0);
+});
+
+test("routing audit: plugin agents resolve via 'ns:name' → 'ns-name.md' convention", async () => {
+  // Set up a fake plugin agent: cache/openai-codex/codex/1.0.0/agents/codex-rescue.md
+  const dir = join(tmp, ".claude", "plugins", "cache", "openai-codex", "codex", "1.0.0", "agents");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "codex-rescue.md"), "---\nname: codex-rescue\n---\nbody");
+
+  const r = await freshImport("../../lib/audit/routing.js");
+  const report = r.audit({
+    skillRouting: [
+      { when: "stuck", use: "codex:rescue", source: "external-rescue" },
+    ],
+  });
+  assert.equal(report.listedButMissing.length, 0,
+    `expected codex:rescue to match codex-rescue.md, got: ${JSON.stringify(report.listedButMissing)}`);
+});
+
 test("migrate.buildPlan: produces one item per drawer with mempalace MCP suggestion", async () => {
   // Reuses drawers from earlier tests.
   const m = await freshImport("../../lib/audit/migrate.js");

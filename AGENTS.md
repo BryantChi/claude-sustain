@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.3.0.
+> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.3.1.
 > This file follows the AGENTS.md cross-platform standard (agents.md).
 
 ## Language
@@ -42,6 +42,10 @@ These override the detailed rules below when in conflict.
 | 2+ independent tasks runnable in parallel | `superpowers:dispatching-parallel-agents` |
 | Before claiming done / fixed / passing | `superpowers:verification-before-completion` |
 | Major phase complete, want review | `superpowers:requesting-code-review` |
+| Received code review feedback, before applying suggestions | `superpowers:receiving-code-review` |
+| Execute an existing written plan with review checkpoints | `superpowers:executing-plans` |
+| Need isolated workspace before risky / parallel work | `superpowers:using-git-worktrees` |
+| Implementation done — deciding merge / PR / cleanup | `superpowers:finishing-a-development-branch` |
 | Cross-session lookup ("how did we solve X before?") | `claude-sustain:memory-search-bridge` |
 | Structural code navigation (avoid reading whole files) | `claude-mem:smart-explore` |
 | Stuck, want second opinion | `codex:rescue OR gemini:rescue` |
