@@ -1,6 +1,6 @@
 {
   "name": "claude-sustain",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Token-efficiency rules, skill routing, enforcement hooks, and cross-platform AGENTS.md generation for sustainable long-term Claude Code use.",
   "author": {
     "name": "bryantchi"

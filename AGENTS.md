@@ -1,6 +1,6 @@
 # Token Efficiency & Sustainable AI Use
 
-> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.5.0.
+> AGENTS.md generated from `claude-sustain/rules/spec.json` v0.6.0.
 > This file follows the AGENTS.md cross-platform standard (agents.md).
 
 ## Language
@@ -88,6 +88,7 @@ These override the detailed rules below when in conflict.
 | R3.3 | Use a smaller model (e.g. haiku) for simple lookups that do not need deep reasoning. |
 | R3.4 | Never duplicate work a subagent is already doing. |
 | R3.5 | Trust but verify — subagent reports can hallucinate (guessing from filenames). Read the source file once before relying on a critical conclusion. |
+| R3.6 | Lookup-style Task calls (find / list / grep / read, no design / refactor / debug keywords, prompt < 200 words) should pass `model: "haiku"`. The PreToolUse hook surfaces this as a hint when conditions match. |
 
 ### R4: Responses
 

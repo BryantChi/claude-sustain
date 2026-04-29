@@ -6,18 +6,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { resolve, dirname } from "node:path";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../..");
 
-function runHook(scriptRel, payload) {
+function runHook(scriptRel, payload, extraEnv = {}) {
   const script = resolve(ROOT, scriptRel);
   const result = spawnSync("node", [script], {
     input: JSON.stringify(payload),
     encoding: "utf8",
-    env: { ...process.env, CLAUDE_PLUGIN_ROOT: ROOT }
+    env: { ...process.env, CLAUDE_PLUGIN_ROOT: ROOT, ...extraEnv }
   });
   return {
     stdout: result.stdout || "",
@@ -26,11 +28,22 @@ function runHook(scriptRel, payload) {
   };
 }
 
-test("PreToolUse: Task with cap + escape clause exits silently", () => {
+function withConfigDir(files) {
+  const dir = mkdtempSync(join(tmpdir(), "sustain-cfg-"));
+  for (const [name, body] of Object.entries(files)) {
+    writeFileSync(join(dir, name), typeof body === "string" ? body : JSON.stringify(body));
+  }
+  return {
+    dir,
+    cleanup: () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} },
+  };
+}
+
+test("PreToolUse: compliant non-lookup Task is silent (no Iron-2 advisory, no model hint)", () => {
   const r = runHook("hooks/pre-tool-use.js", {
     tool_name: "Task",
     tool_input: {
-      prompt: "Survey the project. ≤ 800 字。但發現異常或重大問題務必詳述，不受字數限制。"
+      prompt: "Implement the new export pipeline as described in the plan. ≤ 2000 字。但發現異常或重大問題務必詳述，不受字數限制。"
     }
   });
   assert.equal(r.status, 0);
@@ -109,4 +122,67 @@ test("Stop: emits checklist + token line in user-visible systemMessage", () => {
   const out = JSON.parse(r.stdout);
   assert.match(out.systemMessage, /phase-end checklist/);
   assert.match(out.systemMessage, /tokens:/);
+});
+
+test("PreToolUse: lookup-style Task gets a model hint", () => {
+  const r = runHook("hooks/pre-tool-use.js", {
+    tool_name: "Task",
+    tool_input: { prompt: "Find all files containing TODO and list them. ≤ 200 字。但發現異常或重大問題務必詳述，不受字數限制。" }
+  });
+  assert.equal(r.status, 0);
+  const out = JSON.parse(r.stdout);
+  assert.match(out.systemMessage, /Model hint/);
+  assert.match(out.systemMessage, /haiku/);
+});
+
+test("PreToolUse: design-style Task does not get a model hint", () => {
+  const r = runHook("hooks/pre-tool-use.js", {
+    tool_name: "Task",
+    tool_input: { prompt: "Refactor the auth module. ≤ 2000 字。但發現異常或重大問題務必詳述，不受字數限制。" }
+  });
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, "", "compliant non-lookup Task should be silent");
+});
+
+test("PreToolUse: hard-gate denies missing-cap Task when ironGate=true", () => {
+  const cfg = withConfigDir({ "strict.json": { ironGate: true, bypassPatterns: [] } });
+  try {
+    const r = runHook("hooks/pre-tool-use.js", {
+      tool_name: "Task",
+      tool_input: { prompt: "Survey the project and report back." }
+    }, { CLAUDE_SUSTAIN_CONFIG_DIR: cfg.dir });
+    assert.equal(r.status, 0);
+    const out = JSON.parse(r.stdout);
+    assert.equal(out.hookSpecificOutput.permissionDecision, "deny");
+    assert.match(out.hookSpecificOutput.permissionDecisionReason, /Iron-2/);
+    assert.match(out.hookSpecificOutput.permissionDecisionReason, /hard-gate/);
+  } finally { cfg.cleanup(); }
+});
+
+test("PreToolUse: hard-gate respects bypassPatterns", () => {
+  const cfg = withConfigDir({ "strict.json": { ironGate: true, bypassPatterns: ["#bypass-iron2"] } });
+  try {
+    const r = runHook("hooks/pre-tool-use.js", {
+      tool_name: "Task",
+      tool_input: { prompt: "Survey the project and report back. #bypass-iron2" }
+    }, { CLAUDE_SUSTAIN_CONFIG_DIR: cfg.dir });
+    assert.equal(r.status, 0);
+    const out = JSON.parse(r.stdout || "{}");
+    assert.equal(out.hookSpecificOutput?.permissionDecision, undefined, "bypass should not deny");
+    assert.match(out.systemMessage || "", /Iron-2 advisory/);
+  } finally { cfg.cleanup(); }
+});
+
+test("PreToolUse: hard-gate off (default) preserves warn-only behavior", () => {
+  const cfg = withConfigDir({ "strict.json": { ironGate: false } });
+  try {
+    const r = runHook("hooks/pre-tool-use.js", {
+      tool_name: "Task",
+      tool_input: { prompt: "Survey the project and report back." }
+    }, { CLAUDE_SUSTAIN_CONFIG_DIR: cfg.dir });
+    assert.equal(r.status, 0);
+    const out = JSON.parse(r.stdout);
+    assert.equal(out.hookSpecificOutput?.permissionDecision, undefined);
+    assert.match(out.systemMessage, /Iron-2 advisory/);
+  } finally { cfg.cleanup(); }
 });

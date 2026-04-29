@@ -1,6 +1,6 @@
 {
   "$schema": "./spec.schema.json",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "metadata": {
     "name": "claude-sustain",
     "title": "Token Efficiency & Sustainable AI Use",
@@ -101,7 +101,8 @@
         { "id": "R3.2", "text": "Use the Explore agent for codebase navigation." },
         { "id": "R3.3", "text": "Use a smaller model (e.g. haiku) for simple lookups that do not need deep reasoning." },
         { "id": "R3.4", "text": "Never duplicate work a subagent is already doing." },
-        { "id": "R3.5", "text": "Trust but verify — subagent reports can hallucinate (guessing from filenames). Read the source file once before relying on a critical conclusion." }
+        { "id": "R3.5", "text": "Trust but verify — subagent reports can hallucinate (guessing from filenames). Read the source file once before relying on a critical conclusion." },
+        { "id": "R3.6", "text": "Lookup-style Task calls (find / list / grep / read, no design / refactor / debug keywords, prompt < 200 words) should pass `model: \"haiku\"`. The PreToolUse hook surfaces this as a hint when conditions match." }
       ]
     },
     "R4": {
@@ -145,6 +146,18 @@
     { "when": "Decide whether and where to persist a learning", "use": "claude-sustain:memory-write-router", "source": "claude-sustain" },
     { "when": "Memory health check (stale/duplicate/dead-URL) and routing drift", "use": "claude-sustain:audit-memory", "source": "claude-sustain" }
   ],
+  "userConfig": {
+    "ironGate": {
+      "file": "~/.claude/sustain/strict.json",
+      "schema": { "ironGate": "boolean (default false)", "bypassPatterns": "string[] — substrings of Task prompts to exempt from the gate" },
+      "rationale": "Opt-in hard gate for Iron-2. When ironGate=true, a Task prompt missing the word cap or escape clause is denied (PreToolUse permissionDecision=deny) unless the prompt contains any string in bypassPatterns. Default off preserves v0.5 warn-only behavior."
+    },
+    "notify": {
+      "file": "~/.claude/sustain/notify.json",
+      "schema": { "webhook": "https URL (Slack/Discord/Telegram/raw)", "format": "slack|discord|telegram|raw", "threshold": { "tokenTotal": "number — fire when session total ≥ this", "durationMs": "number — fire when session length ≥ this" }, "minIntervalMs": "number (default 60000)" },
+      "rationale": "Stop-hook notification dispatcher. Best-effort POST; errors never block Stop. State (last-fire timestamp) lives at notify-state.json next to it."
+    }
+  },
   "memoryBackends": {
     "preferred": "auto",
     "candidates": [

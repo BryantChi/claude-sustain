@@ -14,6 +14,7 @@
 | `CLAUDE_SUSTAIN_MEMPALACE_PATH` | Absolute path to a non-standard MemPalace install directory. |
 | `CLAUDE_SUSTAIN_CLAUDE_MEM_PATH` | Absolute path to a non-standard claude-mem install directory. |
 | `CLAUDE_PLUGIN_ROOT` | Set automatically by Claude Code; identifies the plugin's install directory. |
+| `CLAUDE_SUSTAIN_CONFIG_DIR` | Override the location of `strict.json` / `notify.json` / `notify-state.json`. Default `~/.claude/sustain/`. Mainly for tests. |
 
 Example:
 
@@ -98,6 +99,54 @@ Any merged spec carries an `_appliedOverrides: true` marker so downstream code (
 { "skillRouting": [{ "when": "Debugging / bug / failing test / unexpected behavior", "use": "my-team:debug-skill" }] }
 ```
 
+## `strict.json` — Iron-2 hard-gate (v0.6+)
+
+**Location**: `~/.claude/sustain/strict.json`
+
+**Purpose**: opt in to a hard gate on Iron-2. When enabled, the `PreToolUse` hook denies any `Task` invocation whose prompt is missing the word cap or escape clause, unless the prompt contains a string listed in `bypassPatterns`.
+
+```jsonc
+{
+  "ironGate": false,
+  "bypassPatterns": ["#bypass-iron2", "Explore agent — discovery only"]
+}
+```
+
+| Field | Behavior |
+| --- | --- |
+| `ironGate` | When `true`, missing cap/escape returns `permissionDecision=deny`. When `false` (default), v0.5 warn-only behavior is preserved. |
+| `bypassPatterns` | Array of substrings. If any appears in the Task prompt, the gate is skipped (warning is still emitted). Useful for trusted internal Task templates. |
+
+The gate runs before the model-routing hint, so a denied Task never produces a haiku suggestion.
+
+## `notify.json` — Stop-hook notification webhook (v0.6+)
+
+**Location**: `~/.claude/sustain/notify.json`
+
+**Purpose**: post a short summary to a Slack / Discord / Telegram / generic webhook when a session crosses a token or duration threshold. Best-effort: errors and timeouts never block `Stop`.
+
+```jsonc
+{
+  "webhook": "https://hooks.slack.com/services/XXX/YYY/ZZZ",
+  "format": "slack",
+  "threshold": {
+    "tokenTotal": 100000,
+    "durationMs": 600000
+  },
+  "minIntervalMs": 60000
+}
+```
+
+| Field | Behavior |
+| --- | --- |
+| `webhook` | HTTPS endpoint. Required; if missing the dispatcher is a no-op. |
+| `format` | One of `slack` / `discord` / `telegram` / `raw`. Determines the payload shape. |
+| `threshold.tokenTotal` | Fire when (input + output + cache_creation + cache_read) ≥ this. `0` disables this trigger. |
+| `threshold.durationMs` | Fire when session wall-clock ≥ this (parsed from the transcript JSONL). `0` disables. |
+| `minIntervalMs` | Rate-limit between consecutive notifications. Default `60000` (1 minute). |
+
+State (last-fire timestamp, last status code, last error) is written to `~/.claude/sustain/notify-state.json` and used to enforce `minIntervalMs`.
+
 ## File locations
 
 | Path | Writer | Purpose |
@@ -108,6 +157,9 @@ Any merged spec carries an `_appliedOverrides: true` marker so downstream code (
 | `~/.claude/sustain/memory/` | `lib/memory/backends/fs.js` | Filesystem memory store. |
 | `~/.claude/sustain/telemetry/<date>.jsonl` | `hooks/stop.js` via `lib/telemetry.js` | Per-Stop token snapshots. |
 | `~/.claude/sustain/migration-plan.json` | `lib/audit/migrate.js` | fs → mempalace upload plan (only when audit builds it). |
+| `~/.claude/sustain/strict.json` | user | Iron-2 hard-gate switch + bypass list (v0.6+). |
+| `~/.claude/sustain/notify.json` | user | Stop-hook notification webhook config (v0.6+). |
+| `~/.claude/sustain/notify-state.json` | `lib/notify.js` | Last-notification timestamp for rate limiting (v0.6+). |
 
 ## Hooks configuration
 

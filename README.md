@@ -66,7 +66,7 @@
 
 完整重啟 Claude Code（`/clear` 不夠 — 要 CLI 退出再重開）。新 session 應該看到：
 
-- `[claude-sustain v0.5.0] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>` 一行
+- `[claude-sustain v0.6.0] active — 4 Iron Rules + 6-question phase check + N/M skill routes · memory: <backend>` 一行
 - 鐵律 + 過濾過的 routing 表 + 偵測到的 memory backend（在 Claude 的 context 裡）
 - 每次 Stop 顯示六問 checklist + token 行
 
@@ -119,6 +119,34 @@
 
 升級 plugin（`/plugin update` 或 `/sustain:update-rules`）時，bundled 規則會更新但你的 overrides 不會被蓋掉。
 
+### Iron-2 hard-gate（v0.6+）
+
+預設 v0.5 warn-only 行為不變。要把 Iron-2 升級成擋下來的硬閘，建立 `~/.claude/sustain/strict.json`：
+
+```jsonc
+{
+  "ironGate": true,
+  "bypassPatterns": ["#bypass-iron2"]
+}
+```
+
+開啟後，`Task` prompt 缺字數上限或 escape clause 會直接被 Claude Code 擋掉（`permissionDecision=deny`）。`bypassPatterns` 給內部信任模板留逃生口。
+
+### Stop 通知 webhook（v0.6+）
+
+長 session 跑完想被推訊息？建立 `~/.claude/sustain/notify.json`：
+
+```jsonc
+{
+  "webhook": "https://hooks.slack.com/services/XXX/YYY/ZZZ",
+  "format": "slack",
+  "threshold": { "tokenTotal": 100000, "durationMs": 600000 },
+  "minIntervalMs": 60000
+}
+```
+
+`format` 支援 `slack` / `discord` / `telegram` / `raw`。網路失敗或 timeout 永遠不會擋住 `Stop`。
+
 ### 環境變數
 
 | 變數 | 用途 |
@@ -126,6 +154,7 @@
 | `CLAUDE_SUSTAIN_FORCE_BACKEND` | `mempalace` / `claude-mem` / `fs` — 跳過自動偵測 |
 | `CLAUDE_SUSTAIN_MEMPALACE_PATH` | MemPalace 安裝在非標準路徑時用 |
 | `CLAUDE_SUSTAIN_CLAUDE_MEM_PATH` | claude-mem 安裝在非標準路徑時用 |
+| `CLAUDE_SUSTAIN_CONFIG_DIR` | 覆蓋 `strict.json` / `notify.json` 的目錄（預設 `~/.claude/sustain/`，主要給測試用）|
 
 ## 文件
 
@@ -154,7 +183,7 @@
 
 ## 專案狀態
 
-v0.5.0 — 過了 MVP。Memory + telemetry + audit + 動態 routing 過濾 + 個人化覆蓋都已實作。下一階段（v2.0）會加 OTLP-based telemetry、A/B 對照框架（規則開/關比較）、dashboard。
+v0.6.0 — 在 v0.5 的「規則 + memory + telemetry + audit」之上加了三件事：模型路由提示（lookup 類 Task 自動建議 `model: "haiku"`）、Iron-2 hard-gate（opt-in，預設不變）、Stop 通知 webhook（Slack / Discord / Telegram / raw）。下一階段（v2.0）會加 OTLP-based telemetry、A/B 對照框架（規則開/關比較）、dashboard。
 
 ## 反饋
 

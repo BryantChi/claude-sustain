@@ -5,6 +5,38 @@ All notable changes to claude-sustain will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] — 2026-04-29
+
+### Added
+- **Smart model-routing hint (PreToolUse).** When a `Task` prompt looks like a
+  lookup (≤ 200 words, contains a lookup verb such as `find` / `list` / `grep` /
+  `查找` / `盤點`, no heavy keywords like `design` / `refactor` / `debug` / `安全`),
+  the hook surfaces a `systemMessage` suggesting `model: "haiku"`. Pure
+  advisory — never mutates `tool_input`. Promotes R3.3 from a passive rule to an
+  active hint and adds R3.6 documenting the heuristic.
+- **Iron-2 hard-gate (opt-in).** New config file
+  `~/.claude/sustain/strict.json` `{ ironGate: bool, bypassPatterns: string[] }`.
+  When `ironGate=true`, a `Task` prompt missing the word cap or escape clause is
+  denied via `permissionDecision=deny` (PreToolUse). `bypassPatterns` lets
+  trusted internal Task templates skip the gate. Default off preserves v0.5
+  warn-only behavior.
+- **Stop-hook notification webhook.** New config file
+  `~/.claude/sustain/notify.json` configures Slack / Discord / Telegram / raw
+  webhooks. Fires when the session crosses a token-total or duration threshold;
+  rate-limited via `notify-state.json`. Best-effort POST with 5s timeout —
+  network errors never block `Stop`.
+- `lib/config.js`, `lib/notify.js`, `lib/routing/model-hint.js` — new modules
+  with full unit coverage. Integration tests cover hard-gate on/off/bypass and
+  the model-routing hint matcher.
+- `CLAUDE_SUSTAIN_CONFIG_DIR` env var for testing config-driven behavior in
+  isolation.
+
+### Changed
+- `hooks/lib/jsonl.js` now also exposes `sessionDurationMs(transcriptPath)` for
+  the duration threshold in `notify.json`.
+- spec.json bumped to v0.6.0; gains a `userConfig` block describing the new
+  `strict.json` and `notify.json` schemas.
+
 ## [0.5.0] — 2026-04-29
 
 ### Added
